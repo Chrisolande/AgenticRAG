@@ -56,8 +56,8 @@ AgenticRAG uses a sophisticated architecture with multiple specialized component
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/agentic-rag.git
-cd agentic-rag
+git clone https://github.com/Chrisolande/AgenticRAG.git
+cd AgenticRAG
 
 # Create and activate a virtual environment (recommended)
 python -m venv venv
