@@ -221,3 +221,4 @@ def init_globals():
     
     # Set up web search tool
     web_search_tool = setup_web_search()
+    
