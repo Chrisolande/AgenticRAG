@@ -1,68 +1,141 @@
-# AgenticRAG
-================
+# 📚 AgenticRAG
 
-**Retrieval-Augmented Generation System for Text Analysis and Response**
+> *Unlock the wisdom of texts through intelligent retrieval and generation*
 
-## Overview
-AgenticRAG is a Retrieval-Augmented Generation (RAG) system designed to analyze and respond to queries using a corpus of literary and historical texts. By combining semantic search with generative AI, it provides accurate and contextually relevant answers. This project is ideal for exploring the intersection of natural language processing, information retrieval, and knowledge generation.
+![License](https://img.shields.io/badge/license-MIT-blue.svg)
+![Python](https://img.shields.io/badge/python-3.8%2B-brightgreen)
+![Status](https://img.shields.io/badge/status-active-success.svg)
 
-### What is RAG?
-Retrieval-Augmented Generation (RAG) is a technique that enhances generative AI models by integrating them with a retrieval system. Instead of relying solely on pre-trained knowledge, RAG retrieves relevant information from an external corpus to ground its responses, improving accuracy and reducing hallucinations.
+## ✨ What is AgenticRAG?
 
-## Key Features
-- **Text Corpus**: A rich collection of classic literature and historical documents located in the `books/` directory.
-- **Semantic Search**: Efficient retrieval of relevant text passages using vector embeddings and FAISS indexing.
-- **Generative AI**: Combines retrieved information with generative models to produce coherent and informed responses.
-- **Modular Design**: Flexible architecture with dedicated modules for chains, graph operations, prompting, retrieval, and utilities.
+AgenticRAG is an intelligent system that combines the power of retrieval with generative AI to provide accurate, contextually-rich responses from literary and historical texts. Think of it as having a scholar who has read thousands of books and can instantly find and synthesize relevant information to answer your questions.
 
-## Project Structure
-```plain
-├── books/                  # Text corpus
-├── vector/                 # Pre-computed vector indices
-├── modules/                # Core functionality
-│   ├── chains.py           # RAG workflow management
-│   ├── graph.py            # Knowledge graph interactions
-│   ├── main.py             # Entry point for the application
-│   ├── prompts.py          # Prompt engineering utilities
-│   ├── retriever.py        # Semantic search logic
-│   └── utils.py            # Shared helper functions
-├── Agentic RAG.ipynb       # Demo/experimental notebook
-├── .gitignore
-├── .env                    # Environment variables (e.g., API keys)
-└── README.md
+## 🔍 How It Works
+
+```
+📄 Query → 🔎 Semantic Search → 📑 Retrieval → 🧠 Context Analysis → ✍️ Response Generation
 ```
 
-## Dependencies
-- `langchain` for RAG pipelines
-- `faiss-cpu` (or `faiss-gpu` for accelerated search)
-- `transformers` for generation models
+1. **Your question** is processed to understand its intent
+2. **Semantic search** finds the most relevant passages from our corpus
+3. **Retrieved content** provides factual grounding
+4. **AI generation** crafts a coherent, accurate response
 
-## Usage
-1. **Install Dependencies**:
-   ```bash
-   pip install -r requirements.txt  # (Generate if missing: pip freeze > requirements.txt)
-   ```
-2. **Rebuild Vector Index (if modified)**:
-   ```bash
-   python modules/retriever.py --rebuild-index
-   ```
-3. **Run the Application**:
-   ```bash
-   python modules/main.py
-   ```
-4. **Interactive Demo**:
-   - Open `Agentic RAG.ipynb` for example workflows
+## 🧠 Architecture
 
-### Example Query
-After running the application, you can input queries like:
-- "Summarize the plot of 'Pride and Prejudice'."
-- "What are the key themes in 'War and Peace'?"
-- "Provide a comparison between 'The Iliad' and 'The Odyssey'."
+AgenticRAG uses a sophisticated architecture with multiple specialized components:
 
-## Contributing
-Pull requests are welcome! Please ensure that any additions are well-documented and include relevant tests.
+- **Question Router** - Determines whether to use retrieval, web search, or direct generation
+- **Document Retrieval** - Finds relevant passages from the corpus
+- **Web Search** - Integrates external knowledge when needed
+- **Contextual Compression** - Optimizes retrieved content by removing irrelevant information
+- **Retrieval Grader** - Evaluates the quality and relevance of retrieved documents
+- **RAG Generation Chain** - Combines retrieved context with generative capabilities
+- **Final Response** - Delivers accurate, contextual answers
 
-## References
-- [LangChain Documentation](https://langchain.readthedocs.io/)
-- [FAISS Tutorial](https://github.com/facebookresearch/faiss/wiki/Tutorial)
-- [Transformers Library](https://huggingface.co/docs/transformers/)
+## 🌟 Key Features
+
+- **Rich Text Corpus** - Classic literature and historical documents at your fingertips
+- **Intelligent Retrieval** - Advanced semantic search using vector embeddings
+- **Knowledge-Grounded Responses** - Reduces hallucinations with fact-based generation
+- **High Performance** - Optimized with FAISS for fast, scalable search
+- **Modular Architecture** - Easily extensible for custom applications
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+- Python 3.8+
+- Langchain 0.3.25+
+- Langhraph 0.4.3+
+- Langchain openai 0.3.16+
+- Langchain core 0.3.59
+- Git
+
+### Quick Start
+
+```bash
+# Clone the repository
+git clone https://github.com/yourusername/agentic-rag.git
+cd agentic-rag
+
+# Create and activate a virtual environment (recommended)
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Copy .env.example to .env and add your API keys
+cp .env.example .env
+
+# Run the application
+python modules/main.py
+```
+
+## 📋 Usage
+
+### Command Line Interface
+
+```bash
+# Interactive mode (default)
+python modules/main.py
+
+# Single query mode
+python modules/main.py --query "What are the major themes in Frankenstein?"
+
+# Verbose mode to see intermediate processing steps
+python modules/main.py --verbose
+
+# Explicit interactive mode with verbose output
+python modules/main.py --interactive --verbose
+
+# View all available options
+python modules/main.py --help
+```
+
+AgenticRAG can also be used through:
+
+- **Python API** - Integration with other applications
+- **Interactive notebook** - Explore with visualizations
+
+## 📁 Project Structure
+
+
+
+```
+📦 agentic-rag
+ ┣ 📂 books                  # Text corpus collection
+ ┣ 📂 vector                 # Pre-computed vector indices
+ ┣ 📂 modules                # Core functionality
+ ┃ ┣ 📜 chains.py            # RAG workflow orchestration
+ ┃ ┣ 📜 graph.py             # Knowledge graph operations
+ ┃ ┣ 📜 main.py              # Application entry point
+ ┃ ┣ 📜 prompts.py           # Prompt engineering utilities
+ ┃ ┣ 📜 retriever.py         # Semantic search implementation
+ ┃ ┗ 📜 utils.py             # Helper functions
+ ┣ 📓 Agentic RAG.ipynb      # Interactive demo notebook
+ ┣ 📜 .env                   # Environment variables
+ ┣ 📜 .gitignore
+ ┣ 📜 requirements.txt
+ ┗ 📜 README.md
+```
+
+## 📚 Learn More About RAG
+
+Retrieval-Augmented Generation (RAG) enhances AI language models by:
+
+- **Grounding responses** in verified information
+- **Incorporating new knowledge** without retraining
+- **Enabling source citation** for transparency
+- **Reducing computational requirements** compared to larger models
+
+## 📄 License
+
+This project is licensed under the MIT License.
+
+---
+
+<p align="center">
+  Made with ❤️ for the intersection of literature and artificial intelligence
+</p>
