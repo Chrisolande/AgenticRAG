@@ -48,6 +48,11 @@ def main():
             print("Exiting program. Goodbye!")
             break
         
+        # Check if input is empty or just whitespace
+        if not query.strip():
+            print("Please enter a valid question.")
+            continue
+        
         # Process the query and display response
         response = process_query(query)
         
