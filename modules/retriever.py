@@ -15,14 +15,19 @@ from langchain_huggingface import HuggingFaceEmbeddings
 
 from utils import initialize_llm
 
+# Function to load documents from a specified directory
 def load_documents(docs_dir: str = "books") -> List:
     """
-    Load documents from directory
-    
+    Load text documents from the specified directory.
+    Args:
+        docs_dir (str): Path to the directory containing text files.
+    Returns:
+        List: A list of loaded documents.
     """
     if not os.path.exists(docs_dir):
         raise ValueError(f"The specified directory {docs_dir} does not exist. Please enter a valid directory")
 
+    # Load all .txt files from the directory
     loader = DirectoryLoader(
         docs_dir,
         glob="**/*.txt",
@@ -32,19 +37,28 @@ def load_documents(docs_dir: str = "books") -> List:
     print(f"Loaded {len(documents)} documents")
     return documents
 
+# Function to create a vector store from documents
 def create_vectorstore(documents, embeddings=None, store_type: str = "faiss", persist_directory: Optional[str] = None):
     """
-    Create vector store from documents
-    
+    Create a vector store for efficient document retrieval.
+    Args:
+        documents (List): List of documents to index.
+        embeddings: Embedding model to use for vectorization.
+        store_type (str): Type of vector store (e.g., 'faiss', 'chroma').
+        persist_directory (Optional[str]): Directory to save the vector store.
+    Returns:
+        VectorStore: The created vector store.
     """
+    # Split documents into smaller chunks for indexing
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
     chunks = text_splitter.split_documents(documents)
     print(f"Split the documents into {len(chunks)} chunks")
     
+    # Use default embeddings if none are provided
     if embeddings is None:
         embeddings = HuggingFaceEmbeddings(model_name="BAAI/bge-base-en-v1.5")
         
-    # Create Vector Store
+    # Create the vector store based on the specified type
     if store_type.lower() == "faiss":
         vector_store = FAISS.from_documents(chunks, embeddings)
         if persist_directory:
@@ -67,18 +81,24 @@ def create_vectorstore(documents, embeddings=None, store_type: str = "faiss", pe
 
     return vector_store
 
+# Function to initialize a retriever with contextual compression
 def initialize_retriever(docs_dir: str = "books", 
                          store_type: str = "faiss", 
                          persist_directory: Optional[str] = "vector", 
                          similarity_threshold=0.4):
     """
-    Initialize retriever
-
+    Initialize a retriever for document search and retrieval.
+    Args:
+        docs_dir (str): Path to the directory containing documents.
+        store_type (str): Type of vector store (e.g., 'faiss', 'chroma').
+        persist_directory (Optional[str]): Directory to save/load the vector store.
+        similarity_threshold (float): Threshold for filtering similar embeddings.
+    Returns:
+        ContextualCompressionRetriever: The initialized retriever.
     """
-    # Check if vector store exists
+    # Check if a pre-existing vector store exists
     vector_store = None
     if persist_directory and os.path.exists(persist_directory):
-        # Load existing vector store
         print(f"Loading vector store from {persist_directory}")
         embeddings = HuggingFaceEmbeddings(model_name="BAAI/bge-base-en-v1.5")
         if store_type.lower() == "faiss":
@@ -86,43 +106,42 @@ def initialize_retriever(docs_dir: str = "books",
         elif store_type.lower() == "chroma":
             vector_store = Chroma(persist_directory=persist_directory, embedding_function=embeddings)
             
-    # If vector store doesn't exist, create it
+    # If no vector store exists, create a new one
     if vector_store is None:
         documents = load_documents(docs_dir)
         if not documents:
             print("No documents in the directory")
             return None
         
-        # Create Vector Store
         vector_store = create_vectorstore(
             documents,
             store_type=store_type,
             persist_directory=persist_directory
         )
 
-    # Base Retriever
+    # Create a base retriever for similarity search
     base_retriever = vector_store.as_retriever(
         search_type="similarity",
         search_kwargs={"k": 5}
     )
     
-    # Create the embeddings and the embeddings filter
+    # Create an embeddings filter for similarity-based compression
     embeddings = HuggingFaceEmbeddings(model_name="BAAI/bge-base-en-v1.5")
     embeddings_filter = EmbeddingsFilter(
         embeddings=embeddings,
         similarity_threshold=similarity_threshold
     )
 
-    # Create LLMChain Extractor to extract the relevant documents
+    # Create an LLM-based extractor for relevant documents
     llm = initialize_llm()
     llm_extractor = LLMChainExtractor.from_llm(llm=llm)
 
-    # Create a pipeline of compressors
+    # Combine filters and extractors into a compression pipeline
     compression_pipeline = DocumentCompressorPipeline(
         transformers=[embeddings_filter, llm_extractor]
     )
 
-    # Create the retriever
+    # Create the final retriever with contextual compression
     retriever = ContextualCompressionRetriever(
         base_compressor=compression_pipeline,
         base_retriever=base_retriever

@@ -6,94 +6,104 @@ from pprint import pprint
 from retriever import initialize_retriever
 from chains import setup_chains, setup_web_search, process_web_search_results
 
-# Define graph state
+# Define the structure of the graph state
 class GraphState(TypedDict):
-    question: str
-    generation: str
-    web_search: str
-    documents: List[str]
+    question: str  # The input question
+    generation: str  # The generated response
+    web_search: str  # Indicator for web search usage
+    documents: List[str]  # List of retrieved documents
 
+# Function to retrieve documents from the vector store
 def retrieve(state):
     """
-    Retrieve documents from vectorstore
-
+    Retrieve documents from the vector store based on the input question.
+    Args:
+        state (dict): Current state containing the question.
+    Returns:
+        dict: Updated state with retrieved documents.
     """
     print("---RETRIEVE---")
     question = state["question"]
 
-    # Retrieval
+    # Perform retrieval using the retriever
     documents = retriever.invoke(question)
     return {"documents": documents, "question": question}
 
+# Function to generate an answer using RAG
 def generate(state):
     """
-    Generate answer using RAG on retrieved documents
-
+    Generate an answer using RAG based on retrieved documents.
+    Args:
+        state (dict): Current state containing the question and documents.
+    Returns:
+        dict: Updated state with the generated response.
     """
     print("---GENERATE---")
     question = state["question"]
     documents = state["documents"]
 
-    # RAG generation
+    # Generate response using the RAG chain
     generation = rag_chain.invoke({"context": documents, "question": question})
     return {"documents": documents, "question": question, "generation": generation}
 
+# Function to grade the relevance of retrieved documents
 def grade_documents(state):
     """
-    Determines whether the retrieved documents are relevant to the question
-    If any document is not relevant, we will set a flag to run web search
-
+    Grade the relevance of retrieved documents to the input question.
+    Args:
+        state (dict): Current state containing the question and documents.
+    Returns:
+        dict: Updated state with filtered documents and web search flag.
     """
     print("---CHECK DOCUMENT RELEVANCE TO QUESTION---")
     question = state["question"]
     documents = state["documents"]
 
-    # Score each doc
+    # Filter documents based on relevance
     filtered_docs = []
     web_search = "No"
     for d in documents:
         score = retrieval_grader.invoke({"question": question, "document": d.page_content})
         grade = score['score']
-        # Document relevant
         if grade.lower() == "yes":
             print("---GRADE: DOCUMENT RELEVANT---")
             filtered_docs.append(d)
-        # Document not relevant
         else:
             print("---GRADE: DOCUMENT NOT RELEVANT---")
-            # We do not include the document in filtered_docs
-            # We set a flag to indicate that we want to run web search
             web_search = "Yes"
-            continue
     return {"documents": filtered_docs, "question": question, "web_search": web_search}
 
+# Function to perform a web search based on the question
 def web_search(state):
     """
-    Web search based on the question
-
+    Perform a web search to retrieve additional information.
+    Args:
+        state (dict): Current state containing the question.
+    Returns:
+        dict: Updated state with web search results.
     """
     print("---WEB SEARCH---")
     question = state["question"]
-    documents = state.get("documents", [])  # SAFELY get documents or default to empty list
+    documents = state.get("documents", [])
 
-    # Web search
+    # Perform web search and process results
     docs = web_search_tool.invoke({"query": question})
     web_results = process_web_search_results(docs)
-
     documents.append(web_results)
     return {"documents": documents, "question": question}
 
+# Function to route the question to the appropriate workflow
 def route_question(state):
     """
-    Route question to web search or RAG.
-
+    Determine whether to use web search or vector store for the question.
+    Args:
+        state (dict): Current state containing the question.
+    Returns:
+        str: The next step in the workflow ("websearch" or "vectorstore").
     """
     print("---ROUTE QUESTION---")
     question = state["question"]
-    print(question)
     source = question_router.invoke({"question": question})
-    print(source)
-    print(source['datasource'])
     if source['datasource'] == 'web_search':
         print("---ROUTE QUESTION TO WEB SEARCH---")
         return "websearch"
@@ -101,44 +111,43 @@ def route_question(state):
         print("---ROUTE QUESTION TO RAG---")
         return "vectorstore"
 
+# Function to decide whether to generate an answer or perform a web search
 def decide_to_generate(state):
     """
-    Determines whether to generate an answer, or add web search
-
+    Decide the next step based on the relevance of graded documents.
+    Args:
+        state (dict): Current state containing the web search flag and documents.
+    Returns:
+        str: The next step in the workflow ("websearch" or "generate").
     """
     print("---ASSESS GRADED DOCUMENTS---")
-    question = state["question"]
     web_search = state["web_search"]
-    filtered_documents = state["documents"]
-
     if web_search == "Yes":
-        # All documents have been filtered check_relevance
-        # We will re-generate a new query
-        print("---DECISION: ALL DOCUMENTS ARE NOT RELEVANT TO QUESTION, INCLUDE WEB SEARCH---")
+        print("---DECISION: INCLUDE WEB SEARCH---")
         return "websearch"
     else:
-        # We have relevant documents, so generate answer
         print("---DECISION: GENERATE---")
         return "generate"
 
+# Function to grade the generated response for grounding and relevance
 def grade_generation_v_documents_and_question(state):
     """
-    Determines whether the generation is grounded in the document and answers question.
-
+    Grade the generated response for grounding in documents and relevance to the question.
+    Args:
+        state (dict): Current state containing the question, documents, and generation.
+    Returns:
+        str: The next step in the workflow ("useful", "not useful", or "not supported").
     """
     print("---CHECK HALLUCINATIONS---")
     question = state["question"]
     documents = state["documents"]
     generation = state["generation"]
 
+    # Check if the generation is grounded in the documents
     score = hallucination_grader.invoke({"documents": documents, "generation": generation})
     grade = score['score']
-
-    # Check hallucination
     if grade == "yes":
-        print("---DECISION: GENERATION IS GROUNDED IN DOCUMENTS---")
-        # Check question-answering
-        print("---GRADE GENERATION vs QUESTION---")
+        print("---DECISION: GENERATION IS GROUNDED---")
         score = answer_grader.invoke({"question": question, "generation": generation})
         grade = score['score']
         if grade == "yes":
@@ -148,24 +157,21 @@ def grade_generation_v_documents_and_question(state):
             print("---DECISION: GENERATION DOES NOT ADDRESS QUESTION---")
             return "not useful"
     else:
-        pprint("---DECISION: GENERATION IS NOT GROUNDED IN DOCUMENTS, RE-TRY---")
+        print("---DECISION: GENERATION IS NOT GROUNDED---")
         return "not supported"
 
+# Function to create and configure the LangGraph workflow
 def create_graph():
     """
-    Create and configure the LangGraph workflow
-
+    Create and configure the LangGraph workflow.
+    Returns:
+        StateGraph: The compiled workflow graph.
     """
-    # Create the StateGraph
     workflow = StateGraph(GraphState)
-    
-    # Define the nodes
-    workflow.add_node("websearch", web_search)  # web search
-    workflow.add_node("retrieve", retrieve)  # retrieve
-    workflow.add_node("grade_documents", grade_documents)  # grade documents
-    workflow.add_node("generate", generate)  # generate
-    
-    # Define entry point
+    workflow.add_node("websearch", web_search)
+    workflow.add_node("retrieve", retrieve)
+    workflow.add_node("grade_documents", grade_documents)
+    workflow.add_node("generate", generate)
     workflow.set_conditional_entry_point(
         route_question,
         {
@@ -173,8 +179,6 @@ def create_graph():
             "vectorstore": "retrieve",
         },
     )
-    
-    # Define edges
     workflow.add_edge("retrieve", "grade_documents")
     workflow.add_conditional_edges(
         "grade_documents",
@@ -194,31 +198,15 @@ def create_graph():
             "not useful": "websearch",
         },
     )
-    
-    # Compile the graph
     return workflow.compile()
 
-# Initialize globals (to be used by graph components)
-retriever = None
-question_router = None
-rag_chain = None
-retrieval_grader = None
-hallucination_grader = None
-answer_grader = None
-web_search_tool = None
-
+# Initialize global variables for graph components
 def init_globals():
     """
-    Initialize global variables needed for the graph
+    Initialize global variables needed for the graph.
     """
     global retriever, question_router, rag_chain, retrieval_grader, hallucination_grader, answer_grader, web_search_tool
-    
-    # Initialize retriever
     retriever = initialize_retriever(persist_directory="vector")
-    
-    # Set up chains
     question_router, rag_chain, retrieval_grader, hallucination_grader, answer_grader = setup_chains()
-    
-    # Set up web search tool
     web_search_tool = setup_web_search()
-    
+

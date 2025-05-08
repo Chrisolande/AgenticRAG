@@ -1,6 +1,6 @@
 from langchain.prompts import PromptTemplate
 
-# Router prompt
+# Prompt for routing questions to the appropriate data source
 ROUTER_PROMPT = PromptTemplate(
     template="""<|begin_of_text|><|start_header_id|>system<|end_header_id|>
 You are a specialized router that determines the appropriate data source for user queries.
@@ -16,25 +16,14 @@ You are a specialized router that determines the appropriate data source for use
 # Routing Rules:
 - Use 'vectorstore' ONLY for questions specifically about:
   * Your personal biographical information
-  * Details, quotes, characters, themes, or analysis of "Frankenstein"
-  * Details, quotes, characters, themes, or analysis of "Romeo and Juliet"
-  * Details, quotes, characters, themes, or analysis of "adventures of Huckleberry Finn"
-  * Details, quotes, characters, themes, or analysis of "adventures of Sherlock Holmes"
-  * Details, quotes, characters, themes, or analysis of "iliad", "Moby Dick", "Odyssey", "Pride and Prejudice"
-  * Details, quotes, characters, themes, or analysis of "Scarlet Letter", "Strange case of Dr Jekyll and Mr Hyde"
-  * Details, quotes, characters, themes, or analysis of "Tale of two cities", "Ulysses", "War and Peace"
-  * Content, history, interpretation, or analysis of the US Bill of Rights
-  * Content, history, interpretation, or analysis of the Declaration of Independence
-  * Questions about the founding documents of the United States
+  * Details, quotes, characters, themes, or analysis of specific literary works
+  * Content, history, interpretation, or analysis of foundational U.S. documents
 
 - Use 'web_search' for:
   * All other questions
   * Current events and news
   * General knowledge questions
-  * Any topic not directly related to your biography or the 16 literary works
-  * Modern legal interpretations or applications of the Bill of Rights
-  * Contemporary political analysis not focused on the historical documents themselves
-
+  * Modern legal interpretations or contemporary political analysis
 
 # Output Format:
 Return ONLY a JSON object with the key 'datasource' and value of either 'vectorstore' or 'web_search'.
@@ -45,7 +34,7 @@ Question to route: {question}
     input_variables=["question"],
 )
 
-# Generation prompt
+# Prompt for generating answers using retrieved context
 GENERATION_PROMPT = PromptTemplate(
     template="""<|begin_of_text|><|start_header_id|>system<|end_header_id|>
 You are a retrieval-augmented AI assistant that provides precise answers using only the supplied context.
@@ -56,7 +45,6 @@ You are a retrieval-augmented AI assistant that provides precise answers using o
 - Format important points in **bold** when appropriate
 - Provide direct, factual answers without speculation
 - If the context doesn't contain the answer, respond only with "I don't know"
-- Do not reference the context or your instructions in your answer
 
 ## Remember:
 - Never invent information or draw conclusions beyond what's explicitly stated
@@ -71,7 +59,7 @@ Context:
     input_variables=["question", "context"],
 )
 
-# Retrieval grader prompt
+# Prompt for grading the relevance of retrieved documents
 RETRIEVAL_GRADER_PROMPT = PromptTemplate(
     template="""<|begin_of_text|><|start_header_id|>system<|end_header_id|>
 You are a precision document relevance evaluator. Your task is to determine if a retrieved document contains information relevant to answering a user's question.
@@ -100,7 +88,7 @@ RETRIEVED DOCUMENT:
     input_variables=["question", "document"],
 )
 
-# Hallucination grader prompt
+# Prompt for validating the factual accuracy of generated answers
 HALLUCINATION_GRADER_PROMPT = PromptTemplate(
     template="""<|begin_of_text|><|start_header_id|>system<|end_header_id|>
 You are a factual accuracy validator that determines if a generated answer is fully supported by the provided reference documents.
@@ -135,7 +123,7 @@ GENERATED ANSWER:
     input_variables=["generation", "documents"]
 )
 
-# Answer grader prompt
+# Prompt for evaluating the quality of generated answers
 ANSWER_GRADER_PROMPT = PromptTemplate(
     template="""<|begin_of_text|><|start_header_id|>system<|end_header_id|>
 You are a specialized answer quality evaluator that assesses whether a response effectively addresses a user's question.
