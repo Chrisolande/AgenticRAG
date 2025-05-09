@@ -17,7 +17,7 @@ os.environ["PYTORCH_JIT"] = "0"
 
 # Streamlit page configuration
 st.set_page_config(
-    page_title="Agentic RAG App",
+    page_title="Cognisource RAG App 'Where Knowledge Meets Conversation'",
     page_icon="📚",
     layout="centered",
     initial_sidebar_state="expanded"
@@ -73,7 +73,10 @@ with st.sidebar:
     # Model Selection
     model = st.selectbox(
         "Select a model",
-        options=["meta-llama/llama-3.3-70b-instruct"],
+        options=["meta-llama/llama-3.3-70b-instruct",
+                 "google/gemini-2.5-pro-exp-03-25",
+                 "mistralai/mistral-small-3.1-24b-instruct:free",
+                 "nvidia/llama-3.1-nemotron-ultra-253b-v1:free"],
         key="model"
     )
 
