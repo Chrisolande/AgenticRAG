@@ -3,8 +3,8 @@ from typing import List
 from langgraph.graph import END, StateGraph
 from pprint import pprint
 
-from modules.retriever import initialize_retriever
-from modules.chains import setup_chains, setup_web_search, process_web_search_results
+from retriever import initialize_retriever
+from chains import setup_chains, setup_web_search, process_web_search_results
 
 # Define the structure of the graph state
 class GraphState(TypedDict):

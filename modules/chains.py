@@ -3,8 +3,8 @@ from langchain_community.tools.tavily_search import TavilySearchResults
 from langchain.schema import Document
 import os
 
-from modules.utils import initialize_llm, get_api_key
-from modules.prompts import (
+from utils import initialize_llm, get_api_key
+from prompts import (
     ROUTER_PROMPT, 
     GENERATION_PROMPT, 
     RETRIEVAL_GRADER_PROMPT,
