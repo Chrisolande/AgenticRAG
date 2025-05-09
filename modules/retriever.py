@@ -13,7 +13,7 @@ from langchain.retrievers import ContextualCompressionRetriever
 from langchain_community.embeddings.fastembed import FastEmbedEmbeddings
 from langchain_huggingface import HuggingFaceEmbeddings
 
-from utils import initialize_llm
+from modules.utils import initialize_llm
 
 # Function to load documents from a specified directory
 def load_documents(docs_dir: str = "books") -> List:
