@@ -17,14 +17,14 @@ os.environ["PYTORCH_JIT"] = "0"
 
 # Streamlit page configuration
 st.set_page_config(
-    page_title="Cognisource RAG App 'Where Knowledge Meets Conversation'",
+    page_title="Agentic RAG",
     page_icon="📚",
     layout="centered",
     initial_sidebar_state="expanded"
 )
 
 # --- Header ---
-st.html("""<h2 style="text-align: center;">📚🔍 <i>Agentic RAG</i> 🤖💬</h2>""")
+st.html("""<h2 style="text-align: center;">📚🔍 <i>Cognisource RAG App 'Where Knowledge Meets Conversation'</i> 🤖💬</h2>""")
 
 # --- Initial Setup ---
 if "session_id" not in st.session_state:
