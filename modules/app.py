@@ -7,10 +7,10 @@ from langchain.schema import Document
 from langchain_openai import ChatOpenAI
 from langchain.schema import HumanMessage, SystemMessage, AIMessage
 
-from modules.utils import get_api_key, initialize_llm
-from modules.retriever import initialize_retriever, create_vectorstore, load_documents
-from modules.graph import create_graph, init_globals
-from modules.chains import setup_chains, setup_web_search
+from utils import get_api_key, initialize_llm
+from retriever import initialize_retriever, create_vectorstore, load_documents
+from graph import create_graph, init_globals
+from chains import setup_chains, setup_web_search
 
 # Set environment variables to prevent PyTorch errors
 os.environ["PYTORCH_JIT"] = "0"
