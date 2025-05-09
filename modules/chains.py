@@ -63,4 +63,5 @@ def process_web_search_results(docs):
     """
     # Combine the content of all search results into a single string
     web_results = "\n".join([d["content"] for d in docs])
+    
     return Document(page_content=web_results)
