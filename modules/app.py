@@ -17,7 +17,7 @@ os.environ["PYTORCH_JIT"] = "0"
 
 # Streamlit page configuration
 st.set_page_config(
-    page_title="Agentic RAG App",
+    page_title="Cognisource RAG App 'Where Knowledge Meets Conversation'",
     page_icon="📚",
     layout="centered",
     initial_sidebar_state="expanded"
