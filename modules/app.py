@@ -82,6 +82,5 @@ def predict(message, history):
     for token in streaming_handler.text:
         partial_response += token
         yield partial_response
-        
 
 gr.ChatInterface(predict).queue().launch()
